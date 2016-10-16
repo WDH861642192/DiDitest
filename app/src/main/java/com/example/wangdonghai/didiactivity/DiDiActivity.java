@@ -16,6 +16,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.wangdonghai.didimodel.DiDiOrder;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -48,7 +50,7 @@ public class DiDiActivity extends AppCompatActivity {
         LoginBtn = (Button) findViewById(R.id.login_btn);
         mlistview = (ListView) findViewById(R.id.listview);
     }
-
+//模拟登陆
     public void LoginRequest(View v) {
         account = LoginAccountText.getText().toString();
         password = LoginPasswordText.getText().toString();
@@ -72,12 +74,28 @@ public class DiDiActivity extends AppCompatActivity {
             BaseApplication.getRequestQueue().add(jsonObjectRequest);
         }
     }
-
+//获取所有行程订单
     private void getOrderList(String token) {
         JsonObjectRequest jsonObjectRequestOrderList = new JsonObjectRequest(Request.Method.GET, urlorder + account + urlorder1 + token, null, new Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(JSONObject response)  {
                 Log.e("--->>", response.toString());
+                JSONArray jsonArray=response.optJSONArray("order_waiting");
+                for(int i=0;i<jsonArray.length();i++){
+                    JSONObject jsonobject= null;
+                    try {
+                        jsonobject = (JSONObject) jsonArray.get(i);
+                        DiDiOrder diorder=new DiDiOrder();
+                        diorder.setOrderId(jsonobject.optString("orderId"));
+                        diorder.setFromAdress(jsonobject.optString("fromAddress"));
+                        diorder.setTime(jsonobject.optString("setuptime"));
+                        diorder.setToAdress(jsonobject.optString("toAddress"));
+                        AllOrderList.add(diorder);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
                 Loginlayout.setVisibility(View.GONE);
                 mlistview.setVisibility(View.VISIBLE);
             }
