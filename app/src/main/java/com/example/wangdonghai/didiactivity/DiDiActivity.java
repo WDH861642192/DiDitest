@@ -28,6 +28,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+
 /**
  * Created by wangdonghai on 16/10/16.
  */
@@ -40,25 +41,31 @@ public class DiDiActivity extends AppCompatActivity {
     private String url1 = "&role=1&password=";
     private String url2 = "&url=http%3A%2F%2Fcommon.diditaxi.com.cn%2Fgeneral%2FwebEntry%3Fopenid%3Dgeneral_app%26channel%3D%26source%3D%26datatype%3Dwebapp%26token%3DKrWjvVvrs8gbKnO1e6r9rNlJjryEQdfmTLIT8TChN5tUjTsOAjEMRO8ytQvHdoLj2yx_qkUbIYpV7o6hY5qR3pNmdiwIgHBEiEtzZtNm4s6EM0KVcEHseC5jvNctUbFDq71b7YSxvrZT-joJ1391y92i_Espkhf3L8l-IHh-AgAA__8%253D%26phone%3D13000000112&version=0.1.8&appid=100000001&lat=undefined&lng=undefined&maptype=undefined&city_id=undefined&area=undefined&channel=&phone=";
     private String url3 = "&openid=general_app&userType=0&flag=2";
+    private String urldetail = "http://pay.xiaojukeji.com/api/v2/p_getorderdetail?maptype=soso&oid=";
+    private String urldetail1 = "&token=";
+    private String urldetail2 = "&appversion=3&openid=general_app&source=&channel=&datatype=webapp&traffic_router_tag=0&phone=";
     private String diditoken = null;
     private ListView mlistview;
+    private long[] checkedIds;
     private RelativeLayout Loginlayout;
-    private ArrayList<DiDiOrder> AllOrderList=new ArrayList<>();
-    private ArrayList<DiDiOrder> ReimbursementOrderList=new ArrayList<>();
+    private ArrayList<DiDiOrder> AllOrderList = new ArrayList<>();
+    private ArrayList<DiDiOrder> ReimbursementOrderList = new ArrayList<>();
     private String urlorder = "http://common.diditaxi.com.cn/general/webEntry/history?openid=general_app&channel=&source=&datatype=webapp&phone=";
     private String urlorder1 = "&token=";
     private DiDiListAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_di_di);
-        context=this;
+        context = this;
         Loginlayout = (RelativeLayout) findViewById(R.id.login_layout);
         LoginAccountText = (EditText) findViewById(R.id.login_account);
         LoginPasswordText = (EditText) findViewById(R.id.login_password);
         LoginBtn = (Button) findViewById(R.id.login_btn);
         mlistview = (ListView) findViewById(R.id.listview);
-        adapter=new DiDiListAdapter(getLayoutInflater(),AllOrderList);
+        mlistview.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        adapter = new DiDiListAdapter(getLayoutInflater(), AllOrderList);
         LoginAccountText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -67,9 +74,9 @@ public class DiDiActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (count == 1){
+                if (count == 1) {
                     int length = s.toString().length();
-                    if (length == 3 || length == 8){
+                    if (length == 3 || length == 8) {
                         LoginAccountText.setText(s + " ");
                         LoginAccountText.setSelection(LoginAccountText.getText().toString().length());
                     }
@@ -84,14 +91,37 @@ public class DiDiActivity extends AppCompatActivity {
         mlistview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ((CheckableLinearLayout)view).toggle();
+                ((CheckableLinearLayout) view).toggle();
             }
         });
     }
-//模拟登陆
+
+    public void getReimbursementOrderList(View view) {
+        checkedIds=mlistview.getCheckedItemIds();
+        if (checkedIds.length > 0)
+            for (int i = 0; i < checkedIds.length; i++) {
+                final DiDiOrder diOrder = AllOrderList.get((int)checkedIds[i]);
+                JsonObjectRequest jObjectRequest = new JsonObjectRequest(Request.Method.GET, urldetail + diOrder.getOrderId() + urldetail1 +diditoken + urldetail2+account+urldetail1+diOrder.getOrderId(), null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        JSONObject jsonObject = response.optJSONObject("coupon");
+                        diOrder.setTotelfee(jsonObject.optString("total_fee"));
+                        ReimbursementOrderList.add(diOrder);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+                BaseApplication.getRequestQueue().add(jObjectRequest);
+            }
+    }
+
+    //模拟登陆
     public void LoginRequest(View v) {
         account = LoginAccountText.getText().toString();
-        account=account.replaceAll(" ","");
+        account = account.replaceAll(" ", "");
         password = LoginPasswordText.getText().toString();
         if (!TextUtils.isEmpty(account) && !TextUtils.isEmpty(password)) {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, urlroot + account + url1 + password + url2 + account + url3, null, new Response.Listener<JSONObject>() {
@@ -113,18 +143,19 @@ public class DiDiActivity extends AppCompatActivity {
             BaseApplication.getRequestQueue().add(jsonObjectRequest);
         }
     }
-//获取所有行程订单
+
+    //获取所有行程订单
     private void getOrderList(String token) {
         JsonObjectRequest jsonObjectRequestOrderList = new JsonObjectRequest(Request.Method.GET, urlorder + account + urlorder1 + token, null, new Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(JSONObject response)  {
+            public void onResponse(JSONObject response) {
                 Log.e("--->>", response.toString());
-                JSONArray jsonArray=response.optJSONArray("order_done");
-                for(int i=0;i<jsonArray.length();i++){
-                    JSONObject jsonobject= null;
+                JSONArray jsonArray = response.optJSONArray("order_waiting");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonobject = null;
                     try {
                         jsonobject = (JSONObject) jsonArray.get(i);
-                        DiDiOrder diorder=new DiDiOrder();
+                        DiDiOrder diorder = new DiDiOrder();
                         diorder.setOrderId(jsonobject.optString("orderId"));
                         diorder.setFromAdress(jsonobject.optString("fromAddress"));
                         diorder.setTime(jsonobject.optString("setuptime"));
