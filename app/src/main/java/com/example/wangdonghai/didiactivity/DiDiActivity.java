@@ -1,19 +1,26 @@
 package com.example.wangdonghai.didiactivity;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.wangdonghai.Layout.CheckableLinearLayout;
+import com.example.wangdonghai.adapter.DiDiListAdapter;
 import com.example.wangdonghai.didimodel.DiDiOrder;
 
 import org.json.JSONArray;
@@ -25,6 +32,7 @@ import java.util.ArrayList;
  * Created by wangdonghai on 16/10/16.
  */
 public class DiDiActivity extends AppCompatActivity {
+    private Context context;
     private EditText LoginAccountText, LoginPasswordText;
     private Button LoginBtn;
     private String account, password;
@@ -39,20 +47,51 @@ public class DiDiActivity extends AppCompatActivity {
     private ArrayList<DiDiOrder> ReimbursementOrderList=new ArrayList<>();
     private String urlorder = "http://common.diditaxi.com.cn/general/webEntry/history?openid=general_app&channel=&source=&datatype=webapp&phone=";
     private String urlorder1 = "&token=";
-
+    private DiDiListAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_di_di);
+        context=this;
         Loginlayout = (RelativeLayout) findViewById(R.id.login_layout);
         LoginAccountText = (EditText) findViewById(R.id.login_account);
         LoginPasswordText = (EditText) findViewById(R.id.login_password);
         LoginBtn = (Button) findViewById(R.id.login_btn);
         mlistview = (ListView) findViewById(R.id.listview);
+        adapter=new DiDiListAdapter(getLayoutInflater(),AllOrderList);
+        LoginAccountText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (count == 1){
+                    int length = s.toString().length();
+                    if (length == 3 || length == 8){
+                        LoginAccountText.setText(s + " ");
+                        LoginAccountText.setSelection(LoginAccountText.getText().toString().length());
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        mlistview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ((CheckableLinearLayout)view).toggle();
+            }
+        });
     }
 //模拟登陆
     public void LoginRequest(View v) {
         account = LoginAccountText.getText().toString();
+        account=account.replaceAll(" ","");
         password = LoginPasswordText.getText().toString();
         if (!TextUtils.isEmpty(account) && !TextUtils.isEmpty(password)) {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, urlroot + account + url1 + password + url2 + account + url3, null, new Response.Listener<JSONObject>() {
@@ -80,7 +119,7 @@ public class DiDiActivity extends AppCompatActivity {
             @Override
             public void onResponse(JSONObject response)  {
                 Log.e("--->>", response.toString());
-                JSONArray jsonArray=response.optJSONArray("order_waiting");
+                JSONArray jsonArray=response.optJSONArray("order_done");
                 for(int i=0;i<jsonArray.length();i++){
                     JSONObject jsonobject= null;
                     try {
@@ -96,6 +135,7 @@ public class DiDiActivity extends AppCompatActivity {
                     }
 
                 }
+                mlistview.setAdapter(adapter);
                 Loginlayout.setVisibility(View.GONE);
                 mlistview.setVisibility(View.VISIBLE);
             }

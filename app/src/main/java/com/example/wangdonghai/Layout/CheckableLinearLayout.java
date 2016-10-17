@@ -1,4 +1,4 @@
-package com.example.wangdonghai;
+package com.example.wangdonghai.Layout;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -14,15 +14,20 @@ import com.example.wangdonghai.didiactivity.R;
 
 public class CheckableLinearLayout extends LinearLayout implements Checkable {
     private ImageView CheckImage;
-    private boolean mCheck=false;
+    private boolean mCheck = false;
+
     public CheckableLinearLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     @Override
     public void setChecked(boolean checked) {
-        mCheck=!mCheck;
-        CheckImage.setImageResource(mCheck?R.mipmap.is_check:R.mipmap.no_check);
+        mCheck = !mCheck;
+//        获取到该item中的imageview
+        CheckImage = (ImageView) ((LinearLayout) ((LinearLayout) getChildAt(1)).getChildAt(1)).getChildAt(0);
+
+        if (CheckImage != null)
+            CheckImage.setImageResource(mCheck ? R.mipmap.is_check : R.mipmap.no_check);
     }
 
     @Override
@@ -32,9 +37,10 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
 
     @Override
     public void toggle() {
-
+        setChecked(true);
     }
-    public void ImageView(ImageView imageView){
-        CheckImage=imageView;
+
+    public void ImageView(ImageView imageView) {
+        CheckImage = imageView;
     }
 }
