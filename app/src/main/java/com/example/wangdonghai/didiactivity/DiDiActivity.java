@@ -41,9 +41,9 @@ public class DiDiActivity extends AppCompatActivity {
     private String url1 = "&role=1&password=";
     private String url2 = "&url=http%3A%2F%2Fcommon.diditaxi.com.cn%2Fgeneral%2FwebEntry%3Fopenid%3Dgeneral_app%26channel%3D%26source%3D%26datatype%3Dwebapp%26token%3DKrWjvVvrs8gbKnO1e6r9rNlJjryEQdfmTLIT8TChN5tUjTsOAjEMRO8ytQvHdoLj2yx_qkUbIYpV7o6hY5qR3pNmdiwIgHBEiEtzZtNm4s6EM0KVcEHseC5jvNctUbFDq71b7YSxvrZT-joJ1391y92i_Espkhf3L8l-IHh-AgAA__8%253D%26phone%3D13000000112&version=0.1.8&appid=100000001&lat=undefined&lng=undefined&maptype=undefined&city_id=undefined&area=undefined&channel=&phone=";
     private String url3 = "&openid=general_app&userType=0&flag=2";
-    private String urldetail = "http://pay.xiaojukeji.com/api/v2/p_getorderdetail?maptype=soso&oid=";
-    private String urldetail1 = "&token=";
-    private String urldetail2 = "&appversion=3&openid=general_app&source=&channel=&datatype=webapp&traffic_router_tag=0&phone=";
+    private String urldetail = "http://api.udache.com/gulfstream/api/v1/passenger/pGetOrderDetail?token=";
+    private String urldetail1 = "&from=wapwebapp&oid=";
+    private String urldetail2 = "&channel=1030000000&appversion=&_=1476766885115";
     private String diditoken = null;
     private ListView mlistview;
     private long[] checkedIds;
@@ -97,16 +97,18 @@ public class DiDiActivity extends AppCompatActivity {
     }
 
     public void getReimbursementOrderList(View view) {
-        checkedIds=mlistview.getCheckedItemIds();
+        checkedIds = mlistview.getCheckedItemIds();
         if (checkedIds.length > 0)
             for (int i = 0; i < checkedIds.length; i++) {
-                final DiDiOrder diOrder = AllOrderList.get((int)checkedIds[i]);
-                JsonObjectRequest jObjectRequest = new JsonObjectRequest(Request.Method.GET, urldetail + diOrder.getOrderId() + urldetail1 +diditoken + urldetail2+account+urldetail1+diOrder.getOrderId(), null, new Response.Listener<JSONObject>() {
+                final DiDiOrder diOrder = AllOrderList.get((int) checkedIds[i]);
+                JsonObjectRequest jObjectRequest = new JsonObjectRequest(Request.Method.GET, urldetail + diditoken + urldetail1 + diOrder.getOrderId() + urldetail2, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        JSONObject jsonObject = response.optJSONObject("coupon");
-                        diOrder.setTotelfee(jsonObject.optString("total_fee"));
-                        ReimbursementOrderList.add(diOrder);
+                        if ("0".equals(response.optString("errno"))) {
+                            JSONObject jsonObject = response.optJSONObject("feeInfo");
+                            diOrder.setTotalfee(jsonObject.optString("pay_button_title"));
+                            ReimbursementOrderList.add(diOrder);
+                        }
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -150,7 +152,7 @@ public class DiDiActivity extends AppCompatActivity {
             @Override
             public void onResponse(JSONObject response) {
                 Log.e("--->>", response.toString());
-                JSONArray jsonArray = response.optJSONArray("order_waiting");
+                JSONArray jsonArray = response.optJSONArray("order_done");
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonobject = null;
                     try {

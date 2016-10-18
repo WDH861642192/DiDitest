@@ -6,7 +6,7 @@ package com.example.wangdonghai.didimodel;
 
 public class DiDiOrder {
     private String orderId;
-    private String totelfee;
+    private String totalfee;
     private String fromAdress;
     private String toAdress;
     private String time;
@@ -15,8 +15,8 @@ public class DiDiOrder {
         this.orderId = orderId;
     }
 
-    public void setTotelfee(String totelfee) {
-        this.totelfee = totelfee;
+    public void setTotalfee(String totelfee) {
+        this.totalfee = totelfee;
     }
 
     public void setFromAdress(String fromAdress) {
@@ -35,8 +35,8 @@ public class DiDiOrder {
         return orderId;
     }
 
-    public String getTotelfee() {
-        return totelfee;
+    public String getTotalfee() {
+        return totalfee;
     }
 
     public String getFromAdress() {

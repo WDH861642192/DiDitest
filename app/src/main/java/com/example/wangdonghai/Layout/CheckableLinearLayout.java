@@ -22,22 +22,24 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
 
     @Override
     public void setChecked(boolean checked) {
+
+    }
+
+    @Override
+    public boolean isChecked() {
+
+        return mCheck;
+    }
+
+    @Override
+    public void toggle() {
+
         mCheck = !mCheck;
 //        获取到该item中的imageview
         CheckImage = (ImageView) ((LinearLayout) ((LinearLayout) getChildAt(1)).getChildAt(1)).getChildAt(0);
 
         if (CheckImage != null)
             CheckImage.setImageResource(mCheck ? R.mipmap.is_check : R.mipmap.no_check);
-    }
-
-    @Override
-    public boolean isChecked() {
-        return mCheck;
-    }
-
-    @Override
-    public void toggle() {
-        setChecked(true);
     }
 
     public void ImageView(ImageView imageView) {

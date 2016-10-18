@@ -46,22 +46,20 @@ public class DiDiListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         MyViewHolder holder;
-        if(convertView==null){
-            convertView=mDiInflater.inflate(R.layout.item_list,parent,false);
-            holder=new MyViewHolder();
-            holder.fromAdress= (TextView) convertView.findViewById(R.id.didi_fromadress_text);
-            holder.toAddree= (TextView) convertView.findViewById(R.id.didi_toadress_text);
-            holder.time= (TextView) convertView.findViewById(R.id.item_didi_time);
-            holder.isSelected= (ImageView) convertView.findViewById(R.id.didi_select_img);
-            holder.fromAdress.setText(mData.get(position).getFromAdress());
-            holder.time.setText(mData.get(position).getTime());
-            holder.toAddree.setText(mData.get(position).getToAdress());
+        if (convertView == null) {
+            convertView = mDiInflater.inflate(R.layout.item_list, parent, false);
+            holder = new MyViewHolder();
+            holder.fromAdress = (TextView) convertView.findViewById(R.id.didi_fromadress_text);
+            holder.toAddree = (TextView) convertView.findViewById(R.id.didi_toadress_text);
+            holder.time = (TextView) convertView.findViewById(R.id.item_didi_time);
+            holder.isSelected = (ImageView) convertView.findViewById(R.id.didi_select_img);
             convertView.setTag(holder);
-        }
-        else
+        } else
         holder= (MyViewHolder) convertView.getTag();
-
-        return convertView;
+        holder.fromAdress.setText(mData.get(position).getFromAdress());
+        holder.time.setText(mData.get(position).getTime());
+        holder.toAddree.setText(mData.get(position).getToAdress());
+            return convertView;
     }
 
     private class MyViewHolder {
@@ -70,5 +68,10 @@ public class DiDiListAdapter extends BaseAdapter {
         TextView time;
         ImageView isSelected;
 
+    }
+
+    @Override
+    public boolean hasStableIds() {
+        return true;
     }
 }
